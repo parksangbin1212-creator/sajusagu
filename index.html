@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사주사구 — 디지털 명리 분석 서비스</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+  <nav>
+    <a href="#" class="nav-logo" id="navLogo">사주<span class="logo-49">사구</span></a>
+    <div class="nav-right">
+      <span class="nav-badge">디지털 명리 분석 서비스</span>
+    </div>
+  </nav>
+
+  <!-- 화면 1: 신청 폼 -->
+  <div id="screenForm" class="screen active">
+    <div class="form-outer">
+      <div class="form-hero">
+        <div class="eyebrow">✦ 첨단 기술로 분석하는 사주</div>
+        <h1 class="hero-title">단돈 <em>490원</em>으로<br>내 사주 제대로 알아보기</h1>
+        <p class="hero-desc">
+          사주팔자 · 자미두수 · 점성술
+          <br>
+          3가지 체계를 종합 연산한 결과를 받아보세요.
+        </p>
+      </div>
+
+    <div class="form-card">
+       <div class="fg">
+         <label>생년월일</label>
+            <div class="datetime-row">
+                <select id="birthYear">
+                <option value="">년도</option>
+                </select>
+                <span class="date-sep">년</span>
+                <select id="birthMonth">
+                <option value="">월</option>
+                </select>
+                <span class="date-sep">월</span>
+                <select id="birthDay">
+                <option value="">일</option>
+                </select>
+                <span class="date-sep">일</span>
+            </div>
+        </div>
+        <div class="fg">
+          <label>태어난 시간</label>
+          <div class="datetime-row">
+            <select id="birthHour">
+              <option value="">시</option>
+            </select>
+            <span class="date-sep">시</span>
+            <select id="birthMinute">
+              <option value="">분</option>
+            </select>
+            <span class="date-sep">분</span>
+          </div>
+          <label class="unknown-time-label">
+            <input type="checkbox" id="unknownTime" onchange="toggleTime(this)">
+            <span>시간을 몰라요</span>
+          </label>
+        </div>
+
+
+        <div class="frow">
+          <div class="fg">
+            <label>성별</label>
+            <select id="gender">
+              <option value="">선택해주세요</option>
+              <option value="M">남성</option>
+              <option value="F">여성</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>태어난 지역</label>
+            <div class="autocomplete-wrap">
+                <input type="text" id="birthplace" placeholder="도시 입력 (예: 서울)" autocomplete="off" oninput="searchCity(this.value)">
+                <div class="city-dropdown" id="cityDropdown"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 플랜 선택 -->
+        <div class="fg">
+          <label>플랜 선택</label>
+          <div class="plan-cards">
+            <div class="plan-card sel-490" id="plan490" onclick="selectPlan('490')">
+              <div class="plan-emoji">🔴</div>
+              <div class="plan-name">기본 분석</div>
+              <div class="plan-price coral">490원</div>
+              <div class="plan-desc">9가지 항목 · 데이터 기반 분석</div>
+            </div>
+            <div class="plan-card" id="plan4900" onclick="selectPlan('4900')">
+              <div class="plan-emoji">🟡</div>
+              <div class="plan-name">심층 분석</div>
+              <div class="plan-price amber">4,900원</div>
+              <div class="plan-desc">9항목 + 운세 + 고민 답변</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 심층 분석 전용 -->
+        <div id="worryField" class="worry-field">
+          <div class="fg">
+            <label>집중 분석 영역</label>
+            <div class="chips-wrap">
+              <div class="chip on" onclick="selectChip(this)">💼 직업·커리어</div>
+              <div class="chip" onclick="selectChip(this)">💕 연애·결혼</div>
+              <div class="chip" onclick="selectChip(this)">💰 재물·사업</div>
+              <div class="chip" onclick="selectChip(this)">🌟 전체 운세</div>
+            </div>
+          </div>
+          <div class="fg">
+            <label>지금 고민을 알려주세요</label>
+            <textarea id="worry" rows="3" placeholder="예) 이직을 고민 중인데 지금이 맞는 타이밍인지 궁금해요."></textarea>
+          </div>
+        </div>
+
+        <div class="error-box" id="errorBox"></div>
+        <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
+          분석 시작하기 ✨
+        </button>
+        <p class="form-note">데이터 기반 명리 분석 · 결과는 수 분 내 화면에 표시돼요</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 화면 2: 로딩 -->
+  <div id="screenLoading" class="screen">
+    <div class="loading-outer">
+      <div class="loading-spinner"></div>
+      <h2 class="loading-title">분석 중이에요 🔮</h2>
+      <p class="loading-desc">
+        사주팔자 · 자미두수 · 점성술<br>
+        3가지 체계를 종합 연산하고 있어요.<br>
+        잠깐만 기다려주세요!
+      </p>
+      <div class="loading-steps">
+        <div class="loading-step done">✓ 명식 데이터 연산 완료</div>
+        <div class="loading-step active" id="loadingStep2">⟳ 종합 분석 리포트 작성 중...</div>
+        <div class="loading-step" id="loadingStep3">○ 리포트 완성</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 화면 3: 결과 -->
+  <div id="screenResult" class="screen">
+    <div class="result-hero">
+      <div class="plan-badge" id="resultBadge">🔴 490원 기본 분석</div>
+      <h1 class="result-title" id="resultTitle">사주 분석 리포트</h1>
+      <div class="result-meta" id="resultMeta"></div>
+      <div class="saju-pillars" id="sajuPillars"></div>
+    </div>
+    <div class="result-body">
+      <div class="report-content" id="reportContent"></div>
+      <div class="upsell-card" id="upsellCard" style="display:none;">
+        <div style="font-size:2rem;margin-bottom:1rem;">🌟</div>
+        <h2 class="upsell-title">더 깊이 알고 싶다면?</h2>
+        <p class="upsell-desc">
+          기본 분석이 "나는 이런 사람이구나"였다면<br>
+          심층 분석은 "그래서 지금 나는 어떻게 해야 하는가"예요.
+        </p>
+        <div class="upsell-items">
+          <div class="upsell-item">지금 이 시기 어떤 운 안에 있는지</div>
+          <div class="upsell-item">올해·내년 운세 분야별 분석</div>
+          <div class="upsell-item">지금 고민에 대한 직접 답변</div>
+          <div class="upsell-item">조심해야 할 것들 솔직하게</div>
+          <div class="upsell-item">지금 당장 해야 할 것 vs 말아야 할 것</div>
+          <div class="upsell-item">나에게 좋은 방향·색·숫자</div>
+        </div>
+        <button class="btn-upsell" onclick="upgrade()">4,900원으로 심층 분석 받기 →</button>
+      </div>
+      <button class="btn-restart" onclick="goHome()">← 새로운 분석 시작하기</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
