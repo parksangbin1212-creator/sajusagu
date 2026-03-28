@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  optimizeDeps: {
+    include: ['@orrery/core/saju', '@orrery/core/ziwei', '@orrery/core/natal']
+  },
   build: {
-    rollupOptions: {
-      output: {
-        format: 'iife'
-      }
+    commonjsOptions: {
+      include: [/node_modules/]
     }
   }
 })
