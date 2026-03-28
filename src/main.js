@@ -1,7 +1,17 @@
-import { calculateSaju } from '@orrery/core/saju';
-import { createChart } from '@orrery/core/ziwei';
-import { calculateNatal } from '@orrery/core/natal';
+
+
+
 import Anthropic from '@anthropic-ai/sdk';
+
+// 서버에서 계산
+async function calculateAll(year, month, day, hour, minute, gender, latitude, longitude) {
+  const res = await fetch('/api/saju', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ year, month, day, hour, minute, gender, latitude, longitude })
+  });
+  return await res.json();
+}
 
 // ════════════════════════════
 // ⚠️ 여기에 API 키 입력하세요
@@ -380,19 +390,15 @@ window.handleSubmit = async function() {
   showScreen('screenLoading');
 
   try {
-    // 사주 계산
-    const saju = calculateSaju({ year, month, day, hour, minute, gender });
+    
+    const { saju, ziwei, natal } = await calculateAll(
+      year, month, day, hour, minute, gender, loc.lat, loc.lng
+    );
+
     const pillars = saju.pillars;
 
-    // 자미두수 계산
-    const ziwei = createChart(year, month, day, hour, minute, isMale);
-
-    // 점성술 계산
-    const natal = await calculateNatal({
-      year, month, day, hour, minute, gender,
-      latitude: loc.lat,
-      longitude: loc.lng
-    });
+    
+    
 
     // 로딩 스텝 업데이트
     setTimeout(() => {
