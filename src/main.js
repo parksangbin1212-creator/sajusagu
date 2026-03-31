@@ -1,84 +1,29 @@
 
-
-
-import Anthropic from '@anthropic-ai/sdk';
-
-// 서버에서 계산
 async function calculateAll(year, month, day, hour, minute, gender, latitude, longitude) {
-  const res = await fetch('/api/saju', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ year, month, day, hour, minute, gender, latitude, longitude })
-  });
-  return await res.json();
+  try {
+    const res = await fetch('/api/saju', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ year, month, day, hour, minute, gender, latitude, longitude })
+    });
+    if (!res.ok) throw new Error('API 호출 실패');
+    return await res.json();
+  } catch (err) {
+    // 로컬 개발 환경에서는 직접 계산
+    const { calculateSaju } = await import('@orrery/core/saju');
+    const { createChart } = await import('@orrery/core/ziwei');
+    const { calculateNatal } = await import('@orrery/core/natal');
+    const input = { year, month, day, hour, minute, gender };
+    const saju = calculateSaju(input);
+    const ziwei = createChart(year, month, day, hour, minute, gender === 'M');
+    const natal = await calculateNatal({ ...input, latitude, longitude });
+    return { saju, ziwei, natal };
+  }
 }
-
-// ════════════════════════════
-// ⚠️ 여기에 API 키 입력하세요
+// API 키
 const API_KEY = import.meta.env.VITE_API_KEY;
-```
 
----
-
-**3단계 — .gitignore 에 .env 추가**
-
-VS Code에서 `.gitignore` 파일 열고 맨 아래에 추가:
-```
-.env
-api.txt
-// ════════════════════════════
-
-
-document.addEventListener('DOMContentLoaded', () => {
-  const currentYear = new Date().getFullYear();
-
-  // 년도 (1930 ~ 현재)
-  const yearSel = document.getElementById('birthYear');
-  for (let y = currentYear; y >= 1930; y--) {
-    const opt = document.createElement('option');
-    opt.value = y;
-    opt.textContent = y;
-    yearSel.appendChild(opt);
-  }
-
-  // 월 (1 ~ 12)
-  const monthSel = document.getElementById('birthMonth');
-  for (let m = 1; m <= 12; m++) {
-    const opt = document.createElement('option');
-    opt.value = m;
-    opt.textContent = m;
-    monthSel.appendChild(opt);
-  }
-
-  // 일 (1 ~ 31)
-  const daySel = document.getElementById('birthDay');
-  for (let d = 1; d <= 31; d++) {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    daySel.appendChild(opt);
-  }
-
-  // 시 (0 ~ 23)
-  const hourSel = document.getElementById('birthHour');
-  for (let h = 0; h <= 23; h++) {
-    const opt = document.createElement('option');
-    opt.value = h;
-    opt.textContent = h + '시';
-    hourSel.appendChild(opt);
-  }
-
-  // 분 (0 ~ 59)
-  const minuteSel = document.getElementById('birthMinute');
-  for (let min = 0; min <= 59; min++) {
-    const opt = document.createElement('option');
-    opt.value = min;
-    opt.textContent = min + '분';
-    minuteSel.appendChild(opt);
-  }
-});
-
-
+// 도시 목록
 const CITY_LIST = [
   '서울','서귀포','성남','수원','시흥','속초','삼척','상주','사천','순천','세종',
   '안산','안양','아산','안동','양산','양주','양평','양구','양양','여수','여주',
@@ -94,37 +39,6 @@ const CITY_LIST = [
   '진주','진안','진천','진도','장흥','장성','장수','태백','태안','통영','완주',
   '완도','용인','익산','임실','예산','예천','영광','영암','연천','음성'
 ];
-
-window.searchCity = function(val) {
-  const dropdown = document.getElementById('cityDropdown');
-  if (!val || val.length < 1) {
-    dropdown.style.display = 'none';
-    return;
-  }
-  const filtered = CITY_LIST.filter(c => c.includes(val));
-  if (filtered.length === 0) {
-    dropdown.style.display = 'none';
-    return;
-  }
-  dropdown.innerHTML = filtered.map(c =>
-    `<div class="city-item" onclick="selectCity('${c}')">${c}</div>`
-  ).join('');
-  dropdown.style.display = 'block';
-};
-
-window.selectCity = function(city) {
-  document.getElementById('birthplace').value = city;
-  document.getElementById('cityDropdown').style.display = 'none';
-};
-
-// 바깥 클릭시 닫기
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.autocomplete-wrap')) {
-    document.getElementById('cityDropdown').style.display = 'none';
-  }
-});
-
-
 
 // 지역별 위도·경도
 const LOCATIONS = {
@@ -232,7 +146,6 @@ const LOCATIONS = {
   '서귀포': { lat: 33.2541, lng: 126.5600 },
 };
 
-// 기본값 서울
 function getLocation(place) {
   for (const [key, val] of Object.entries(LOCATIONS)) {
     if (place.includes(key)) return val;
@@ -244,18 +157,78 @@ function getLocation(place) {
 let selectedPlan = '490';
 let selectedChip = '💼 직업·커리어';
 
+// DOM 로드 후 드롭다운 생성
+document.addEventListener('DOMContentLoaded', () => {
+  const currentYear = new Date().getFullYear();
+
+  const yearSel = document.getElementById('birthYear');
+  for (let y = currentYear; y >= 1930; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    yearSel.appendChild(opt);
+  }
+
+  const monthSel = document.getElementById('birthMonth');
+  for (let m = 1; m <= 12; m++) {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = m;
+    monthSel.appendChild(opt);
+  }
+
+  const daySel = document.getElementById('birthDay');
+  for (let d = 1; d <= 31; d++) {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    daySel.appendChild(opt);
+  }
+
+  const hourSel = document.getElementById('birthHour');
+  for (let h = 0; h <= 23; h++) {
+    const opt = document.createElement('option');
+    opt.value = h; opt.textContent = h + '시';
+    hourSel.appendChild(opt);
+  }
+
+  const minuteSel = document.getElementById('birthMinute');
+  for (let min = 0; min <= 59; min++) {
+    const opt = document.createElement('option');
+    opt.value = min; opt.textContent = min + '분';
+    minuteSel.appendChild(opt);
+  }
+});
+
+// 자동완성
+window.searchCity = function(val) {
+  const dropdown = document.getElementById('cityDropdown');
+  if (!val || val.length < 1) { dropdown.style.display = 'none'; return; }
+  const filtered = CITY_LIST.filter(c => c.includes(val));
+  if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+  dropdown.innerHTML = filtered.map(c =>
+    `<div class="city-item" onclick="selectCity('${c}')">${c}</div>`
+  ).join('');
+  dropdown.style.display = 'block';
+};
+
+window.selectCity = function(city) {
+  document.getElementById('birthplace').value = city;
+  document.getElementById('cityDropdown').style.display = 'none';
+};
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.autocomplete-wrap')) {
+    const dd = document.getElementById('cityDropdown');
+    if (dd) dd.style.display = 'none';
+  }
+});
+
 // 플랜 선택
 window.selectPlan = function(plan) {
   selectedPlan = plan;
-  document.getElementById('plan490').className =
-    'plan-card' + (plan === '490' ? ' sel-490' : '');
-  document.getElementById('plan4900').className =
-    'plan-card' + (plan === '4900' ? ' sel-4900' : '');
-  document.getElementById('worryField').style.display =
-    plan === '4900' ? 'block' : 'none';
+  document.getElementById('plan490').className = 'plan-card' + (plan === '490' ? ' sel-490' : '');
+  document.getElementById('plan4900').className = 'plan-card' + (plan === '4900' ? ' sel-4900' : '');
+  document.getElementById('worryField').style.display = plan === '4900' ? 'block' : 'none';
 };
 
-// 칩 선택
 window.selectChip = function(el) {
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
   el.classList.add('on');
@@ -272,14 +245,13 @@ function showScreen(id) {
 window.goHome = function() { showScreen('screenForm'); };
 
 window.upgrade = function() {
-  selectPlan('4900');
+  window.selectPlan('4900');
   showScreen('screenForm');
   setTimeout(() => {
     document.getElementById('worryField').scrollIntoView({ behavior: 'smooth' });
   }, 300);
 };
 
-// 에러 표시
 function showError(msg) {
   const box = document.getElementById('errorBox');
   box.textContent = msg;
@@ -289,12 +261,28 @@ function hideError() {
   document.getElementById('errorBox').style.display = 'none';
 }
 
-// 490원 프롬프트
+// 시간 모름 토글
+window.toggleTime = function(checkbox) {
+  const hourSel = document.getElementById('birthHour');
+  const minuteSel = document.getElementById('birthMinute');
+  const row = hourSel.closest('.datetime-row');
+  if (checkbox.checked) {
+    hourSel.value = ''; minuteSel.value = '';
+    hourSel.disabled = true; minuteSel.disabled = true;
+    row.style.opacity = '0.3'; row.style.pointerEvents = 'none';
+  } else {
+    hourSel.disabled = false; minuteSel.disabled = false;
+    row.style.opacity = '1'; row.style.pointerEvents = 'auto';
+  }
+};
+
+// 프롬프트
 const PROMPT_490 = `당신은 사주사구의 명리 분석 시스템입니다.
 아래 규칙을 반드시 지켜서 리포트를 작성하세요.
 
 1. 한자를 단독으로 쓰지 마세요. 반드시 "한글(한자)" 형식으로 써주세요.
-   예시: 임오(壬午), 무토(戊土), 식신(食神)
+   단, 입력된 사주 데이터의 간지(干支)는 절대 임의로 바꾸지 마세요.
+   예) 일주가 戊申이면 반드시 무신(戊申)으로, 절대 무술(戊戌)로 바꾸지 마세요.
 2. 각 항목은 반드시 10줄 이상 작성하세요.
 3. 어려운 명리 용어는 반드시 쉽게 풀어쓰세요.
 4. 좋은 말만 하지 마세요. 약점도 솔직하게, 하지만 따뜻하게.
@@ -320,11 +308,12 @@ const PROMPT_490 = `당신은 사주사구의 명리 분석 시스템입니다.
 더 깊은 분석은 심층 분석(4,900원)에서 확인하세요.
 ---`;
 
-// 4900원 프롬프트
 const PROMPT_4900 = `당신은 사주사구의 명리 분석 시스템입니다.
 아래 규칙을 반드시 지켜서 리포트를 작성하세요.
 
 1. 한자를 단독으로 쓰지 마세요. 반드시 "한글(한자)" 형식으로 써주세요.
+   단, 입력된 사주 데이터의 간지(干支)는 절대 임의로 바꾸지 마세요.
+   예) 일주가 戊申이면 반드시 무신(戊申)으로, 절대 무술(戊戌)로 바꾸지 마세요.
 2. 모든 항목은 반드시 25줄 이상 작성하세요.
 3. 어려운 명리 용어는 반드시 쉽게 풀어쓰세요.
 4. 좋은 말만 하지 마세요. 솔직하되 따뜻하게.
@@ -368,16 +357,13 @@ window.handleSubmit = async function() {
   const gender = document.getElementById('gender').value;
   const birthplace = document.getElementById('birthplace').value.trim();
   const worry = document.getElementById('worry').value.trim();
-  // 유효성 검사
+
   if (!birthYear || !birthMonth || !birthDay) return showError('생년월일을 모두 입력해주세요.');
   if (!gender) return showError('성별을 선택해주세요.');
-  if (!birthplace) return showError('태어난 지역을 입력해주세요.');
-  if (!gender) return showError('성별을 선택해주세요.');
-  if (!birthplace) return showError('태어난 지역을 입력해주세요.');
-  if (birthplace.length < 2) return showError('지역명을 2글자 이상 입력해주세요.');
-  if (API_KEY === 'YOUR_API_KEY_HERE') return showError('API 키를 설정해주세요.');
-
-  // 날짜 파싱
+  if (!birthplace || birthplace.length < 2) return showError('태어난 지역을 입력해주세요.');
+  const userEmail = document.getElementById('userEmail').value.trim();
+  if (!userEmail) return showError('이메일을 입력해주세요.');
+  
   const year = Number(birthYear);
   const month = Number(birthMonth);
   const day = Number(birthDay);
@@ -386,21 +372,15 @@ window.handleSubmit = async function() {
   const isMale = gender === 'M';
   const loc = getLocation(birthplace);
 
-  // 로딩 화면
   showScreen('screenLoading');
 
   try {
-    
     const { saju, ziwei, natal } = await calculateAll(
       year, month, day, hour, minute, gender, loc.lat, loc.lng
     );
 
     const pillars = saju.pillars;
 
-    
-    
-
-    // 로딩 스텝 업데이트
     setTimeout(() => {
       document.getElementById('loadingStep2').className = 'loading-step done';
       document.getElementById('loadingStep2').textContent = '✓ 종합 분석 완료';
@@ -408,58 +388,76 @@ window.handleSubmit = async function() {
       document.getElementById('loadingStep3').textContent = '⟳ 리포트 작성 중...';
     }, 500);
 
-   // 데이터 텍스트 구성
-const today = new Date();
-const currentYear = today.getFullYear();
-const currentMonth = today.getMonth() + 1;
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1;
+    const currentAge = currentYear - year;
 
+    const currentDaewoon = saju.daewoon.find((d, i) => {
+      const next = saju.daewoon[i + 1];
+      return d.age <= currentAge && (!next || next.age > currentAge);
+    });
 
-// sky.told.me 형식으로 데이터 변환
-const currentAge = currentYear - year;
-const currentDaewoon = saju.daewoon.find((d, i) => {
-  const next = saju.daewoon[i + 1];
-  return d.age <= currentAge && (!next || next.age > currentAge);
-});
-
-const dataText = `
-오늘 날짜: ${currentYear}년 ${currentMonth}월
-현재 나이: ${currentAge}세
-
+    const dataText = `
 四柱八字 (${isMale ? '男' : '女'})
 ─────
        時柱    日柱    月柱    年柱
 ─────
-십신   ${saju.pillars[0].stemSipsin}    ${saju.pillars[1].stemSipsin}    ${saju.pillars[2].stemSipsin}    ${saju.pillars[3].stemSipsin}
-천간     ${saju.pillars[0].pillar.stem}      ${saju.pillars[1].pillar.stem}      ${saju.pillars[2].pillar.stem}      ${saju.pillars[3].pillar.stem}
-지지     ${saju.pillars[0].pillar.branch}      ${saju.pillars[1].pillar.branch}      ${saju.pillars[2].pillar.branch}      ${saju.pillars[3].pillar.branch}
-십신   ${saju.pillars[0].branchSipsin}    ${saju.pillars[1].branchSipsin}    ${saju.pillars[2].branchSipsin}    ${saju.pillars[3].branchSipsin}
+십신   ${pillars[0].stemSipsin}    ${pillars[1].stemSipsin}    ${pillars[2].stemSipsin}    ${pillars[3].stemSipsin}
+천간     ${pillars[0].pillar.stem}      ${pillars[1].pillar.stem}      ${pillars[2].pillar.stem}      ${pillars[3].pillar.stem}
+지지     ${pillars[0].pillar.branch}      ${pillars[1].pillar.branch}      ${pillars[2].pillar.branch}      ${pillars[3].pillar.branch}
+십신   ${pillars[0].branchSipsin}    ${pillars[1].branchSipsin}    ${pillars[2].branchSipsin}    ${pillars[3].branchSipsin}
 ─────
-운성   ${saju.pillars[0].unseong}     ${saju.pillars[1].unseong}      ${saju.pillars[2].unseong}      ${saju.pillars[3].unseong}
+운성   ${pillars[0].unseong}     ${pillars[1].unseong}      ${pillars[2].unseong}      ${pillars[3].unseong}
+장간  ${saju.jwabeop[0].map(j=>j.stem).join('')}  ${saju.jwabeop[1].map(j=>j.stem).join('')}  ${saju.jwabeop[2].map(j=>j.stem).join('')}  ${saju.jwabeop[3].map(j=>j.stem).join('')}
+
+사주 4기둥 (반드시 이 한자 그대로 사용하세요. 절대 임의로 바꾸지 마세요):
+시주: ${pillars[0].pillar.ganzi}
+일주: ${pillars[1].pillar.ganzi}
+월주: ${pillars[2].pillar.ganzi}
+년주: ${pillars[3].pillar.ganzi}
+
+坐法 (장간 → 운성)
+─────
+時柱: ${saju.jwabeop[0].map(j=>`${j.stem}(${j.sipsin}·${j.unseong}坐)`).join(' ')}
+日柱: ${saju.jwabeop[1].map(j=>`${j.stem}(${j.sipsin}·${j.unseong}坐)`).join(' ')}
+月柱: ${saju.jwabeop[2].map(j=>`${j.stem}(${j.sipsin}·${j.unseong}坐)`).join(' ')}
+年柱: ${saju.jwabeop[3].map(j=>`${j.stem}(${j.sipsin}·${j.unseong}坐)`).join(' ')}
+
+引從法
+─────
+${saju.injongbeop.map(i=>`${i.yangStem} ${i.category} → ${i.unseong}從`).join(' · ')}
 
 神殺
 ─────
-문창귀인: ${saju.specialSals.munchang.map(i => ['시주','일주','월주','년주'][i]).join(', ') || '없음'}
-도화살: ${saju.specialSals.dohwa.map(i => ['시주','일주','월주','년주'][i]).join(', ') || '없음'}
+문창귀인: ${saju.specialSals.munchang.map(i=>['시주','일주','월주','년주'][i]).join(', ') || '없음'}
+도화살: ${saju.specialSals.dohwa.map(i=>['시주','일주','월주','년주'][i]).join(', ') || '없음'}
+공망: ${saju.gongmang.branches.join(', ')}
 
 大運
 ─────
-현재 대운: ${currentDaewoon ? `${currentDaewoon.ganzi} (${currentDaewoon.age}세 시작, ${new Date(currentDaewoon.startDate).getFullYear()}년~)` : '없음'}
-천간십신: ${currentDaewoon?.stemSipsin || ''} / 지지십신: ${currentDaewoon?.branchSipsin || ''}
+오늘 날짜: ${currentYear}년 ${currentMonth}월
+현재 나이: ${currentAge}세
+현재 대운: ${currentDaewoon ? `${currentDaewoon.ganzi} ${currentDaewoon.stemSipsin} (${currentDaewoon.age}세 시작, ${new Date(currentDaewoon.startDate).getFullYear()}년~)` : '없음'}
 
-전체 대운 목록:
-${saju.daewoon.map(d =>
-  `${d.age}세(${new Date(d.startDate).getFullYear()}년~): ${d.ganzi} / ${d.stemSipsin} / ${d.branchSipsin}`
+전체 대운:
+${saju.daewoon.map((d, i) => 
+  `${i+1}運 (${d.age}세)  ${d.stemSipsin}  ${d.ganzi}  ${d.branchSipsin}  (${new Date(d.startDate).getFullYear()}年)`
 ).join('\n')}
 
 紫微斗數 命盤 (${isMale ? '男' : '女'})
 ═════
 오행국: ${ziwei.wuXingJu.name}
 명궁: ${ziwei.mingGongZhi}
+신궁: ${ziwei.shenGongZhi || ''}
 대한시작나이: ${ziwei.daXianStartAge}세
 
-십이궁:
-${Object.values(ziwei.palaces).map(p =>
-  `${p.name}궁 (${p.ganZhi}): ${p.stars?.map(s => `${s.name}${s.brightness ? ' ' + s.brightness : ''}${s.siHua ? ' ' + s.siHua : ''}`).join(', ') || '공궁'}`
+十二宮
+─────
+${Object.values(ziwei.palaces).map(p => 
+  `${p.name}   ${p.ganZhi}  ${p.stars?.map(s => 
+    `${s.name}${s.brightness ? ' ' + s.brightness : ''}${s.siHua ? ' ' + s.siHua : ''}`
+  ).join(', ') || '(空宮)'}${p.isShenGong ? ' ★身宮' : ''}`
 ).join('\n')}
 
 Natal Chart
@@ -467,109 +465,121 @@ Natal Chart
 ASC: ${natal.angles.asc.sign} ${natal.angles.asc.degreeInSign.toFixed(1)}°
 MC: ${natal.angles.mc.sign} ${natal.angles.mc.degreeInSign.toFixed(1)}°
 
-행성:
+Planets
+─────
 ${natal.planets.map(p =>
-  `${p.id}: ${p.sign} ${p.degreeInSign.toFixed(1)}° ${p.retrograde ? '(역행)' : ''}`
+  `${p.id}: ${p.sign} ${p.degreeInSign.toFixed(1)}°${p.retrograde ? ' R' : ''}`
 ).join('\n')}
 
-주요 애스펙트:
-${natal.aspects?.slice(0, 10).map(a =>
-  `${a.planet1} ${a.type} ${a.planet2} (오브: ${a.orb?.toFixed(1)}°)`
+Major Aspects
+─────
+${natal.aspects?.slice(0, 12).map(a =>
+  `${a.planet1} ${a.type} ${a.planet2} orb ${a.orb?.toFixed(1)}°`
 ).join('\n') || '없음'}
 `.trim();
 
-const userMessage = selectedPlan === '490'
-  ? `아래 데이터로 기본 분석 리포트를 작성해주세요.\n\n${dataText}`
-  : `아래 데이터로 심층 분석 리포트를 작성해주세요.
+    const userMessage = selectedPlan === '490'
+      ? `아래 데이터로 기본 분석 리포트를 작성해주세요.\n\n${dataText}`
+      : `아래 데이터로 심층 분석 리포트를 작성해주세요.
 
 집중 분석 영역: ${selectedChip}
 고민/질문: ${worry || '없음'}
 
 ${dataText}`;
 
-    // Claude API 스트리밍 호출
-const client = new Anthropic({
-  apiKey: API_KEY,
-  dangerouslyAllowBrowser: true
-});
+    // 결과 화면 구성
+    document.getElementById('resultBadge').textContent =
+      selectedPlan === '490' ? '🔴 490원 기본 분석' : '🟡 4,900원 심층 분석';
+    document.getElementById('resultTitle').textContent =
+      `${year}년생 ${isMale ? '남성' : '여성'}님의 분석 리포트`;
+    document.getElementById('resultMeta').innerHTML = `
+      <span class="meta-chip">🗓 ${year}년 ${month}월 ${day}일</span>
+      ${birthHour ? `<span class="meta-chip">⏰ ${hour}시 ${minute}분</span>` : ''}
+      <span class="meta-chip">📍 ${birthplace}</span>
+      <span class="meta-chip">${isMale ? '♂ 남성' : '♀ 여성'}</span>
+    `;
 
-// 결과 화면 먼저 표시
-document.getElementById('resultBadge').textContent =
-  selectedPlan === '490' ? '🔴 490원 기본 분석' : '🟡 4,900원 심층 분석';
-document.getElementById('resultTitle').textContent =
-  `${year}년생 ${isMale ? '남성' : '여성'}님의 분석 리포트`;
-document.getElementById('resultMeta').innerHTML = `
-  <span class="meta-chip">🗓 ${year}년 ${month}월 ${day}일</span>
-  ${birthHour ? `<span class="meta-chip">⏰ ${hour}시 ${minute}분</span>` : ''}
-  <span class="meta-chip">📍 ${birthplace}</span>
-  <span class="meta-chip">${isMale ? '♂ 남성' : '♀ 여성'}</span>
-`;
+    const pillarLabels = ['시주', '일주 (나)', '월주', '년주'];
+    document.getElementById('sajuPillars').innerHTML = pillars.map((p, i) => `
+      <div class="pillar-box ${i === 1 ? 'day' : ''}">
+        <div class="pillar-label">${pillarLabels[i]}</div>
+        <span class="pillar-gan">${p.pillar.ganzi ? p.pillar.ganzi[0] : ''}</span>
+        <span class="pillar-ji">${p.pillar.ganzi ? p.pillar.ganzi[1] : ''}</span>
+      </div>
+    `).join('');
 
-const pillarLabels = ['시주', '일주 (나)', '월주', '년주'];
+    document.getElementById('upsellCard').style.display =
+      selectedPlan === '490' ? 'block' : 'none';
 
-document.getElementById('sajuPillars').innerHTML = pillars.map((p, i) => `
-  <div class="pillar-box ${i === 1 ? 'day' : ''}">
-    <div class="pillar-label">${pillarLabels[i]}</div>
-    <span class="pillar-gan">${p.pillar.ganzi ? p.pillar.ganzi[0] : ''}</span>
-    <span class="pillar-ji">${p.pillar.ganzi ? p.pillar.ganzi[1] : ''}</span>
-  </div>
-`).join('');
-document.getElementById('upsellCard').style.display =
-  selectedPlan === '490' ? 'block' : 'none';
-document.getElementById('reportContent').textContent = '';
-
-// 화면 전환 먼저
-showScreen('screenResult');
-
-// 스트리밍 시작
-const reportEl = document.getElementById('reportContent');
-reportEl.textContent = '분석 중...';
-
-const stream = await client.messages.stream({
-  model: selectedPlan === '490'
-    ? 'claude-haiku-4-5-20251001'
-    : 'claude-sonnet-4-20250514',
-  max_tokens: selectedPlan === '490' ? 8000 : 20000,
-  system: selectedPlan === '490' ? PROMPT_490 : PROMPT_4900,
-  messages: [{ role: 'user', content: userMessage }]
-});
-
-reportEl.textContent = '';
-
-for await (const chunk of stream) {
-  if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-   reportEl.textContent += chunk.delta.text;
-  }
-}
-
-// 스트리밍 완료 (결과 화면 구성은 위에서 이미 함)
-const report = reportEl.textContent;
+    const reportEl = document.getElementById('reportContent');
+    reportEl.textContent = '분석 중...';
 
     showScreen('screenResult');
+
+    // 스트리밍
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: selectedPlan === '490' ? 8096 : 16000,
+        temperature: 0.3,
+        stream: true,
+        system: selectedPlan === '490' ? PROMPT_490 : PROMPT_4900,
+        messages: [{ role: 'user', content: userMessage }]
+      })
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    reportEl.textContent = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.type === 'content_block_delta' && parsed.delta.type === 'text_delta') {
+              reportEl.textContent += parsed.delta.text;
+            }
+          } catch (e) {}
+        }
+      }
+    }
+    // 이메일 발송
+    const userEmail = document.getElementById('userEmail').value.trim();
+    if (userEmail) {
+      const birthInfo = `${year}년 ${month}월 ${day}일생 ${isMale ? '남성' : '여성'} (${birthplace})`;
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: userEmail,
+            report: reportEl.textContent,
+            birthInfo: birthInfo
+          })
+        });
+      } catch (e) {
+        console.log('이메일 발송 실패:', e);
+      }
+    }
+
 
   } catch (err) {
     showScreen('screenForm');
     showError('오류가 발생했어요: ' + (err.message || '다시 시도해주세요.'));
     console.error(err);
-  }
-};
-
-
-window.toggleTime = function(checkbox) {
-  const hourSel = document.getElementById('birthHour');
-  const minuteSel = document.getElementById('birthMinute');
-  const row = hourSel.closest('.datetime-row');
-  if (checkbox.checked) {
-    hourSel.value = '';
-    minuteSel.value = '';
-    hourSel.disabled = true;
-    minuteSel.disabled = true;
-    row.style.opacity = '0.3';
-    row.style.pointerEvents = 'none';
-  } else {
-    hourSel.disabled = false;
-    minuteSel.disabled = false;
-    row.style.opacity = '1';
-    row.style.pointerEvents = 'auto';
   }
 };
