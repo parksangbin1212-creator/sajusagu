@@ -407,3 +407,17 @@ input::-webkit-calendar-picker-indicator {
   outline: none;
   box-shadow: none;
 }
+
+
+.partner-section {
+  background: var(--amber-pale);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid var(--amber-light);
+}
+.partner-title {
+  font-family: 'Gowun Dodum', sans-serif;
+  font-size: 1rem;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}

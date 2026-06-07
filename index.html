@@ -16,6 +16,7 @@
       <span class="nav-badge">디지털 명리 분석 서비스</span>
     </div>
   </nav>
+  
 
   <!-- 화면 1: 신청 폼 -->
   <div id="screenForm" class="screen active">
@@ -102,29 +103,60 @@
             </div>
             <div class="plan-card" id="plan4900" onclick="selectPlan('4900')">
               <div class="plan-emoji">🟡</div>
-              <div class="plan-name">심층 분석</div>
+              <div class="plan-name">궁합 분석</div>
               <div class="plan-price amber">4,900원</div>
-              <div class="plan-desc">9항목 + 운세 + 고민 답변</div>
+              <div class="plan-desc">두 사람의 궁합 종합 분석</div>
             </div>
           </div>
         </div>
 
-        <!-- 심층 분석 전용 -->
+       
         <div id="worryField" class="worry-field">
-          <div class="fg">
-            <label>집중 분석 영역</label>
-            <div class="chips-wrap">
-              <div class="chip on" onclick="selectChip(this)">💼 직업·커리어</div>
-              <div class="chip" onclick="selectChip(this)">💕 연애·결혼</div>
-              <div class="chip" onclick="selectChip(this)">💰 재물·사업</div>
-              <div class="chip" onclick="selectChip(this)">🌟 전체 운세</div>
+          <div class="partner-section">
+            <h3 class="partner-title">💕 상대방 정보 입력</h3>
+            <div class="fg">
+              <label>상대방 생년월일</label>
+              <div class="datetime-row">
+                <select id="partnerYear"><option value="">년도</option></select>
+                <span class="date-sep">년</span>
+                <select id="partnerMonth"><option value="">월</option></select>
+                <span class="date-sep">월</span>
+                <select id="partnerDay"><option value="">일</option></select>
+                <span class="date-sep">일</span>
+              </div>
+            </div>
+            <div class="fg">
+              <label>상대방 태어난 시간</label>
+              <div class="datetime-row">
+                <select id="partnerHour"><option value="">시</option></select>
+                <span class="date-sep">시</span>
+                <select id="partnerMinute"><option value="">분</option></select>
+                <span class="date-sep">분</span>
+              </div>
+              <label class="unknown-time-label">
+                <input type="checkbox" id="partnerUnknownTime" onchange="togglePartnerTime(this)">
+                <span>시간을 몰라요</span>
+              </label>
+            </div>
+            <div class="frow">
+              <div class="fg">
+                <label>상대방 성별</label>
+                <select id="partnerGender">
+                  <option value="">선택해주세요</option>
+                  <option value="M">남성</option>
+                  <option value="F">여성</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label>상대방 태어난 지역</label>
+                <div class="autocomplete-wrap">
+                  <input type="text" id="partnerBirthplace" placeholder="도시 입력 (예: 서울)" autocomplete="off" oninput="searchPartnerCity(this.value)">
+                  <div class="city-dropdown" id="partnerCityDropdown"></div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="fg">
-            <label>지금 고민을 알려주세요</label>
-            <textarea id="worry" rows="3" placeholder="예) 이직을 고민 중인데 지금이 맞는 타이밍인지 궁금해요."></textarea>
-          </div>
-        </div>
+      </div>
 
         <div class="error-box" id="errorBox"></div>
         <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
@@ -184,6 +216,8 @@
     </div>
   </div>
 
+  <script type="module" src="/src/main.js"></script>
+  <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

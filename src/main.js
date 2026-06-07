@@ -1,4 +1,3 @@
-
 async function calculateAll(year, month, day, hour, minute, gender, latitude, longitude) {
   try {
     const res = await fetch('/api/saju', {
@@ -195,6 +194,53 @@ document.addEventListener('DOMContentLoaded', () => {
     opt.value = min; opt.textContent = min + '분';
     minuteSel.appendChild(opt);
   }
+  // 상대방 드롭다운 생성
+  const pYearSel = document.getElementById('partnerYear');
+  if (pYearSel) {
+    for (let y = currentYear; y >= 1930; y--) {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      pYearSel.appendChild(opt);
+    }
+  }
+
+  const pMonthSel = document.getElementById('partnerMonth');
+  if (pMonthSel) {
+    for (let m = 1; m <= 12; m++) {
+      const opt = document.createElement('option');
+      opt.value = m; opt.textContent = m;
+      pMonthSel.appendChild(opt);
+    }
+  }
+
+  const pDaySel = document.getElementById('partnerDay');
+  if (pDaySel) {
+    for (let d = 1; d <= 31; d++) {
+      const opt = document.createElement('option');
+      opt.value = d; opt.textContent = d;
+      pDaySel.appendChild(opt);
+    }
+  }
+
+  const pHourSel = document.getElementById('partnerHour');
+  if (pHourSel) {
+    for (let h = 0; h <= 23; h++) {
+      const opt = document.createElement('option');
+      opt.value = h; opt.textContent = h + '시';
+      pHourSel.appendChild(opt);
+    }
+  }
+
+  const pMinuteSel = document.getElementById('partnerMinute');
+  if (pMinuteSel) {
+    for (let min = 0; min <= 59; min++) {
+      const opt = document.createElement('option');
+      opt.value = min; opt.textContent = min + '분';
+      pMinuteSel.appendChild(opt);
+    }
+  }
+
+
 });
 
 // 자동완성
@@ -291,59 +337,89 @@ const PROMPT_490 = `당신은 사주사구의 명리 분석 시스템입니다.
 7. 리포트 제목은 "사주사구 분석 리포트"로 하세요. AI 언급 금지.
 
 출력 형식:
-[01] 나는 어떤 사람인지
-[02] 어떤 일주이고 어떤 성향인지
-[03] 성격의 장단점 (강점 3가지, 약점 3가지)
-[04] 평생총운
-[05] 나의 대운 흐름
-[06] 어떤 사람을 만나야 하는지
-[07] 인간관계
-[08] 재물복
-[09] 어떤 성향의 직업이 맞는지 (잘 맞는 직업군 5가지 이상)
+[01] 나는 어떤 사람인지 (10줄 이상)
+[02] 어떤 일주이고 어떤 성향인지 (10줄 이상)
+[03] 성격의 장단점 - 강점 3가지, 약점 3가지 (10줄 이상)
+[04] 평생총운 (10줄 이상)
+[05] 나의 대운 흐름 (10줄 이상)
+[06] 어떤 사람을 만나야 하는지 (10줄 이상)
+[07] 인간관계 (10줄 이상)
+[08] 재물복 (10줄 이상)
+[09] 어떤 성향의 직업이 맞는지 - 잘 맞는 직업군 5가지 이상 (10줄 이상)
+[10] 지금 이 시기 나는 어떤 운 안에 있나 (10줄 이상)
+[11] 올해 운세 - 오늘 날짜 기준 현재 연도 (10줄 이상)
+[12] 내년 운세 - 오늘 날짜 기준 다음 연도 (10줄 이상)
+[13] 조심해야 할 것들 (10줄 이상)
+[14] 나에게 좋은 방향·색·숫자 (10줄 이상)
 
 마지막에:
 ---
 💌 사주사구 분석 완료
 3가지 체계를 종합 연산한 결과예요.
-더 깊은 분석은 심층 분석(4,900원)에서 확인하세요.
+궁합이 궁금하다면 궁합 분석(4,900원)을 신청해보세요.
 ---`;
 
-const PROMPT_4900 = `당신은 사주사구의 명리 분석 시스템입니다.
-아래 규칙을 반드시 지켜서 리포트를 작성하세요.
+const PROMPT_4900 = `당신은 사주사구의 궁합 분석 시스템입니다.
+두 사람의 사주 데이터를 분석해서 궁합 리포트를 작성하세요.
 
 1. 한자를 단독으로 쓰지 마세요. 반드시 "한글(한자)" 형식으로 써주세요.
-   단, 입력된 사주 데이터의 간지(干支)는 절대 임의로 바꾸지 마세요.
-   예) 일주가 戊申이면 반드시 무신(戊申)으로, 절대 무술(戊戌)로 바꾸지 마세요.
-2. 모든 항목은 반드시 25줄 이상 작성하세요.
+2. 각 항목은 반드시 15줄 이상 작성하세요.
 3. 어려운 명리 용어는 반드시 쉽게 풀어쓰세요.
 4. 좋은 말만 하지 마세요. 솔직하되 따뜻하게.
 5. 말투는 "~해요", "~예요" 체로 통일.
-6. 세 가지 체계를 따로 나열하지 말고 하나의 결론으로 통합해서 써주세요.
-7. 리포트 제목은 "사주사구 심층 분석 리포트"로 하세요. AI 언급 금지.
+6. 두 사람을 "A님"과 "B님"으로 구분해서 써주세요.
+7. 리포트 제목은 "사주사구 궁합 분석 리포트"로 하세요. AI 언급 금지.
+8. 입력된 사주 데이터의 간지(干支)는 절대 임의로 바꾸지 마세요.
 
-출력 형식:
-[01] 나는 어떤 사람인지
-[02] 어떤 일주이고 어떤 성향인지
-[03] 성격의 장단점
-[04] 평생총운
-[05] 나의 대운 흐름
-[06] 어떤 사람을 만나야 하는지
-[07] 인간관계
-[08] 재물복
-[09] 어떤 성향의 직업이 맞는지
-[10] 지금 이 시기 나는 어떤 운 안에 있나
-[11] 올해 운세 (오늘 날짜 기준 현재 연도)
-[12] 내년 운세 (오늘 날짜 기준 다음 연도)
-[13] 고민에 대한 직접 답변 (구체적 시기와 근거 포함)
-[14] 조심해야 할 것들
-[15] 지금 당장 해야 할 것 vs 하지 말아야 할 것
-[16] 나에게 좋은 방향·색·숫자
+출력 형식:  
+[01] 두 사람의 기본 기질 비교 - A님과 B님은 어떤 사람인지
+[02] 오행(五行) 상생·상극 관계 - 두 사람의 에너지가 어떻게 만나는지
+[03] 일주 궁합 - 두 일주의 조합이 만드는 관계
+[04] 자미두수 궁합 - 부부궁·교우궁을 중심으로
+[05] 점성술 궁합 - 두 사람의 행성 시너지
+[06] 연애 궁합 종합 - 연애할 때 잘 맞는 점과 주의할 점
+[07] 결혼 궁합 종합 - 오래 함께할 때의 흐름
+[08] 두 사람이 함께 잘 되는 상황과 조심해야 할 상황
+[09] 궁합 총평 - 한 줄 요약 포함
 
 마지막에:
 ---
-💌 사주사구 심층 분석 완료
+💌 사주사구 궁합 분석 완료
 3가지 체계를 종합 연산한 결과예요.
+사주는 정해진 운명이 아니라 나를 이해하는 도구예요 🌸
 ---`;
+
+// 상대방 시간 모름 토글
+window.togglePartnerTime = function(checkbox) {
+  const hourSel = document.getElementById('partnerHour');
+  const minuteSel = document.getElementById('partnerMinute');
+  const row = hourSel.closest('.datetime-row');
+  if (checkbox.checked) {
+    hourSel.value = ''; minuteSel.value = '';
+    hourSel.disabled = true; minuteSel.disabled = true;
+    row.style.opacity = '0.3'; row.style.pointerEvents = 'none';
+  } else {
+    hourSel.disabled = false; minuteSel.disabled = false;
+    row.style.opacity = '1'; row.style.pointerEvents = 'auto';
+  }
+};
+
+// 상대방 도시 자동완성
+window.searchPartnerCity = function(val) {
+  const dropdown = document.getElementById('partnerCityDropdown');
+  if (!val || val.length < 1) { dropdown.style.display = 'none'; return; }
+  const filtered = CITY_LIST.filter(c => c.includes(val));
+  if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+  dropdown.innerHTML = filtered.map(c =>
+    `<div class="city-item" onclick="selectPartnerCity('${c}')">${c}</div>`
+  ).join('');
+  dropdown.style.display = 'block';
+};
+
+window.selectPartnerCity = function(city) {
+  document.getElementById('partnerBirthplace').value = city;
+  document.getElementById('partnerCityDropdown').style.display = 'none';
+};
 
 // 메인 제출 함수
 window.handleSubmit = async function() {
@@ -363,7 +439,42 @@ window.handleSubmit = async function() {
   if (!birthplace || birthplace.length < 2) return showError('태어난 지역을 입력해주세요.');
   const userEmail = document.getElementById('userEmail').value.trim();
   if (!userEmail) return showError('이메일을 입력해주세요.');
-  
+
+  // ─── 결제 처리 ───
+  const amount = selectedPlan === '490' ? 490 : 4900;
+  const orderName = selectedPlan === '490' ? '사주사구 기본 분석' : '사주사구 궁합 분석';
+  const paymentId = `sajusagu-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '결제 진행 중...';
+
+  try {
+    const paymentResponse = await PortOne.requestPayment({
+      storeId: "store-cc5c45e1-7c5f-4390-8fdd-3cf2f8808327",
+      channelKey: "channel-key-b9d01ab4-6d32-4baf-8eec-ff710eac855f",
+      paymentId: paymentId,
+      orderName: orderName,
+      totalAmount: amount,
+      currency: "CURRENCY_KRW",
+      payMethod: "CARD",
+    });
+
+    if (paymentResponse.code != null) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '분석 시작하기 ✨';
+      return showError(paymentResponse.message || '결제가 취소되었어요.');
+    }
+  } catch (payErr) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '분석 시작하기 ✨';
+    return showError('결제 중 오류가 발생했어요. 다시 시도해주세요.');
+  }
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = '분석 시작하기 ✨';
+  // ─── 결제 완료, 분석 시작 ───
+
   const year = Number(birthYear);
   const month = Number(birthMonth);
   const day = Number(birthDay);
@@ -489,7 +600,7 @@ ${dataText}`;
 
     // 결과 화면 구성
     document.getElementById('resultBadge').textContent =
-      selectedPlan === '490' ? '🔴 490원 기본 분석' : '🟡 4,900원 심층 분석';
+      selectedPlan === '490' ? '🔴 490원 기본 분석' : '🟡 4,900원 궁합 분석';
     document.getElementById('resultTitle').textContent =
       `${year}년생 ${isMale ? '남성' : '여성'}님의 분석 리포트`;
     document.getElementById('resultMeta').innerHTML = `
@@ -558,7 +669,6 @@ ${dataText}`;
       }
     }
     // 이메일 발송
-    const userEmail = document.getElementById('userEmail').value.trim();
     if (userEmail) {
       const birthInfo = `${year}년 ${month}월 ${day}일생 ${isMale ? '남성' : '여성'} (${birthplace})`;
       try {
