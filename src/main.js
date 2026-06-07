@@ -453,11 +453,15 @@ const worry = document.getElementById('worry')?.value?.trim() || '';
     const paymentResponse = await PortOne.requestPayment({
       storeId: "store-cc5c45e1-7c5f-4390-8fdd-3cf2f8808327",
       channelKey: "channel-key-b9d01ab4-6d32-4baf-8eec-ff710eac855f",
-      paymentId: paymentId,
+      paymentId: `payment-${crypto.randomUUID()}`,
       orderName: orderName,
       totalAmount: amount,
       currency: "CURRENCY_KRW",
       payMethod: "CARD",
+      customer: {
+        fullName: "사주사구 고객",
+        email: userEmail,
+      },
     });
 
     if (paymentResponse.code != null) {
