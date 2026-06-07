@@ -453,7 +453,7 @@ const worry = document.getElementById('worry')?.value?.trim() || '';
     const paymentResponse = await PortOne.requestPayment({
       storeId: "store-cc5c45e1-7c5f-4390-8fdd-3cf2f8808327",
       channelKey: "channel-key-b9d01ab4-6d32-4baf-8eec-ff710eac855f",
-      paymentId: `payment${Date.now()}${Math.random().toString(36).substr(2, 9)}`,
+      paymentId: paymentId,
       orderName: orderName,
       totalAmount: amount,
       currency: "CURRENCY_KRW",
