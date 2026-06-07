@@ -432,7 +432,7 @@ window.handleSubmit = async function() {
   const birthMinute = document.getElementById('birthMinute').value;
   const gender = document.getElementById('gender').value;
   const birthplace = document.getElementById('birthplace').value.trim();
-  const worry = document.getElementById('worry').value.trim();
+const worry = document.getElementById('worry')?.value?.trim() || '';
 
   if (!birthYear || !birthMonth || !birthDay) return showError('생년월일을 모두 입력해주세요.');
   if (!gender) return showError('성별을 선택해주세요.');
