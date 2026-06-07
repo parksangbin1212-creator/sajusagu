@@ -443,7 +443,7 @@ const worry = document.getElementById('worry')?.value?.trim() || '';
   // ─── 결제 처리 ───
   const amount = selectedPlan === '490' ? 490 : 4900;
   const orderName = selectedPlan === '490' ? '사주사구 기본 분석' : '사주사구 궁합 분석';
-  const paymentId = `sajusagu-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const paymentId = `payment${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
 
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
@@ -453,7 +453,7 @@ const worry = document.getElementById('worry')?.value?.trim() || '';
     const paymentResponse = await PortOne.requestPayment({
       storeId: "store-cc5c45e1-7c5f-4390-8fdd-3cf2f8808327",
       channelKey: "channel-key-b9d01ab4-6d32-4baf-8eec-ff710eac855f",
-      paymentId: `payment-${crypto.randomUUID()}`,
+      paymentId: `payment${Date.now()}${Math.random().toString(36).substr(2, 9)}`,
       orderName: orderName,
       totalAmount: amount,
       currency: "CURRENCY_KRW",
@@ -461,6 +461,7 @@ const worry = document.getElementById('worry')?.value?.trim() || '';
       customer: {
         fullName: "사주사구 고객",
         email: userEmail,
+        phoneNumber: "01000000000",
       },
     });
 
